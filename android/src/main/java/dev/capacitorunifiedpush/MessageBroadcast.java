@@ -8,7 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 /**
- * Package restricted broadcast sent for every accepted (decrypted) message, so the app's own
+ * Package-restricted broadcast sent for every accepted (decrypted) message, so the app's own
  * native code can react while the WebView is not running.
  */
 final class MessageBroadcast {
@@ -22,7 +22,7 @@ final class MessageBroadcast {
 
     private MessageBroadcast() {}
 
-    /** Builds the explicit, package restricted intent. */
+    /** Builds the package-restricted intent. */
     static Intent build(Context context, String instance, String data, String id) {
         Intent i = new Intent(ACTION);
         i.setPackage(context.getPackageName());
@@ -39,7 +39,21 @@ final class MessageBroadcast {
                 .getPackageManager()
                 .getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
             Bundle meta = info.metaData;
-            return meta == null || meta.getBoolean(META_ENABLED, true);
+            if (meta == null) {
+                return true;
+            }
+            // Read the raw value so that a string "false" or an integer 0 also switch it off.
+            Object v = meta.get(META_ENABLED);
+            if (v instanceof Boolean) {
+                return (Boolean) v;
+            }
+            if (v instanceof Integer) {
+                return ((Integer) v) != 0;
+            }
+            if (v instanceof String) {
+                return !"false".equalsIgnoreCase(((String) v).trim()) && !"0".equals(((String) v).trim());
+            }
+            return true;
         } catch (PackageManager.NameNotFoundException | RuntimeException e) {
             return true;
         }

@@ -79,9 +79,9 @@ export interface PushNotificationSpec {
   /** Milliseconds since epoch, set by the sender, used as replay guard. */
   timestamp?: number;
   /**
-   * Name of a drawable resource in the app (for example `ic_stat_sleep`) used as the small icon.
-   * Must match `^[a-z][a-z0-9_]{0,63}$`. Falls back to the plugin's default icon when invalid or not
-   * found. Small icons must be monochrome (white on transparent).
+   * Name of a drawable resource in the app (for example `ic_stat_timer`) used as the small icon.
+   * Must match `^ic_stat_[a-z0-9_]{1,56}$`. Falls back to the plugin's default icon when invalid, not
+   * found or not loadable. Small icons must be monochrome (white on transparent).
    */
   icon?: string;
   /** Accent colour as `#RRGGBB`. Ignored when it does not match exactly. */

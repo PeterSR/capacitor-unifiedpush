@@ -48,4 +48,18 @@ public class MessageBroadcastTest {
         MessageBroadcast.send(app, "default", "x", "id-3");
         assertTrue(Shadows.shadowOf(app).getBroadcastIntents().isEmpty());
     }
+
+    @Test
+    public void stringFalseAndIntegerZeroAlsoSwitchItOff() {
+        ApplicationInfo info = app.getApplicationInfo();
+        if (info.metaData == null) {
+            info.metaData = new android.os.Bundle();
+        }
+        info.metaData.putString(MessageBroadcast.META_ENABLED, "false");
+        assertTrue(!MessageBroadcast.isEnabled(app));
+        info.metaData.putInt(MessageBroadcast.META_ENABLED, 0);
+        assertTrue(!MessageBroadcast.isEnabled(app));
+        info.metaData.putBoolean(MessageBroadcast.META_ENABLED, true);
+        assertTrue(MessageBroadcast.isEnabled(app));
+    }
 }

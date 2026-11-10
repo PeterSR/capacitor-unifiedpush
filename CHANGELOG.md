@@ -8,8 +8,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
-- Optional `icon` (name of a drawable resource in the app, validated against
-  `^[a-z][a-z0-9_]{0,63}$`, falls back to the default icon) and `color` (`#RRGGBB`) fields on the
+- Optional `icon` (name of a drawable resource in the app, must match
+  `^ic_stat_[a-z0-9_]{1,56}$`, falls back to the default icon) and `color` (`#RRGGBB`) fields on the
   `notification` object. Both are kept when a notification is re-posted after an action tap. New
   `PushNotificationSpec` type.
 - Native broadcast `dev.capacitorunifiedpush.MESSAGE` (restricted to the app's package, extras

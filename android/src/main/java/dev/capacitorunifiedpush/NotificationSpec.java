@@ -20,8 +20,8 @@ final class NotificationSpec {
 
     static final int MAX_ACTIONS = 3;
 
-    /** Android resource name rules, lower case only. */
-    private static final Pattern ICON_NAME = Pattern.compile("^[a-z][a-z0-9_]{0,63}$");
+    /** Android resource name rules, lower case only, and the app must opt in with the ic_stat_ prefix. */
+    private static final Pattern ICON_NAME = Pattern.compile("^ic_stat_[a-z0-9_]{1,56}$");
     private static final Pattern COLOR = Pattern.compile("^#[0-9A-Fa-f]{6}$");
 
     static final class Action {
@@ -133,8 +133,8 @@ final class NotificationSpec {
             n.optBoolean("silent", false),
             channel.isEmpty() ? null : channel,
             actions,
-            validIcon(n.optString("icon", "")),
-            parseColor(n.optString("color", "")),
+            validIcon(n.opt("icon")),
+            parseColor(n.opt("color")),
             data == null ? "{}" : data.toString(),
             n.has("timestamp") && !n.isNull("timestamp") ? Long.valueOf(n.optLong("timestamp")) : null,
             n.toString()
@@ -142,15 +142,15 @@ final class NotificationSpec {
     }
 
     /** Returns the name when it is a valid Android drawable resource name, otherwise null. */
-    static String validIcon(String name) {
-        return name != null && ICON_NAME.matcher(name).matches() ? name : null;
+    static String validIcon(Object name) {
+        return name instanceof String && ICON_NAME.matcher((String) name).matches() ? (String) name : null;
     }
 
     /** Parses "#RRGGBB" into an opaque ARGB int, or returns null for anything else. */
-    static Integer parseColor(String value) {
-        if (value == null || !COLOR.matcher(value).matches()) {
+    static Integer parseColor(Object value) {
+        if (!(value instanceof String) || !COLOR.matcher((String) value).matches()) {
             return null;
         }
-        return Integer.valueOf(0xFF000000 | Integer.parseInt(value.substring(1), 16));
+        return Integer.valueOf(0xFF000000 | Integer.parseInt(((String) value).substring(1), 16));
     }
 }

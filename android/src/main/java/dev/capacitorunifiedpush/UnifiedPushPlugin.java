@@ -162,9 +162,8 @@ public class UnifiedPushPlugin extends Plugin {
 
     /**
      * Stores the message until JS acknowledges it, and delivers it now when a listener is
-     * attached. Delivery is at least once.
+     * attached. Delivery is at least once. Returns the stored id, or null on failure.
      */
-    /** Stores the message and emits it to JS. Returns the stored message id, or null on failure. */
     static String dispatchMessage(Context context, String instance, String data) {
         JSONObject m = new JSONObject();
         try {

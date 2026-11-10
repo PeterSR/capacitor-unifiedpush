@@ -1,5 +1,6 @@
 package dev.capacitorunifiedpush;
 
+import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -11,6 +12,7 @@ import android.service.notification.StatusBarNotification;
 import android.util.Log;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.res.ResourcesCompat;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.SecureRandom;
@@ -140,11 +142,18 @@ final class NotificationHandler {
      */
     private static int resolveSmallIcon(Context context, String name) {
         if (name != null) {
+            @SuppressLint("DiscouragedApi") // the name comes from the message, so it can only be looked up at runtime
             int id = context.getResources().getIdentifier(name, "drawable", context.getPackageName());
             if (id != 0) {
-                return id;
+                try {
+                    if (ResourcesCompat.getDrawable(context.getResources(), id, null) != null) {
+                        return id;
+                    }
+                } catch (RuntimeException e) {
+                    Log.w(TAG, "Drawable '" + name + "' could not be loaded", e);
+                }
             }
-            Log.w(TAG, "Drawable '" + name + "' not found, using the default icon");
+            Log.w(TAG, "Drawable '" + name + "' not usable, using the default icon");
         }
         return R.drawable.ic_stat_unifiedpush;
     }

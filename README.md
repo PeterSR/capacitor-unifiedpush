@@ -152,7 +152,7 @@ Delivery is **at least once**, and nothing is lost to a WebView reload or a cold
 
 ## Native message broadcast (Android)
 
-For every accepted message (decrypted, stored for JS delivery) the plugin sends an explicit broadcast
+For every accepted message (decrypted, stored for JS delivery) the plugin sends a package-restricted broadcast
 so that your own native code, for example a home screen widget's `BroadcastReceiver`, can react while
 the WebView is not running. Messages that fail decryption are never broadcast.
 
@@ -165,7 +165,7 @@ the WebView is not running. Messages that fail decryption are never broadcast.
 | Extra `id` | String, the id the message was stored with (the `id` of the `message` event) |
 
 The broadcast is on by default. To switch it off, add this to the `<application>` element of your
-manifest (this keeps things simple: no runtime API, the choice is made at build time):
+manifest (this keeps things simple: no runtime API, the choice is made at build time). The literal boolean `false` is the supported form; the string "false" and the integer 0 are also treated as off:
 
 ```xml
 <meta-data android:name="dev.capacitorunifiedpush.broadcast_messages" android:value="false" />
@@ -192,6 +192,8 @@ class PushReceiver : BroadcastReceiver() {
     </intent-filter>
 </receiver>
 ```
+
+A receiver registered at runtime must use `ContextCompat.registerReceiver(..., ContextCompat.RECEIVER_NOT_EXPORTED)`.
 
 Security: the broadcast is limited to your package, and the receiver must be `android:exported="false"`
 so no other app can send it forged messages. The payload is already decrypted, so do not log it or
@@ -240,7 +242,7 @@ Cancel:
 | `data` | object | Returned in `notificationAction`. |
 | `channel_id` | string | Notification channel created by your app. The plugin's default channel is used when absent or when the channel does not exist. |
 | `silent` | boolean | No sound or vibration. Updates to an existing notification never alert again. |
-| `icon` | string, optional | Name of a drawable resource in your app, for example `ic_stat_timer`. Must match `^[a-z][a-z0-9_]{0,63}$`. Falls back to the default icon when the name is invalid or no such drawable exists. See "Small icons" below. |
+| `icon` | string, optional | Name of a drawable resource in your app, for example `ic_stat_timer`. Must match `^ic_stat_[a-z0-9_]{1,56}$` (the `ic_stat_` prefix is required, so a message cannot pick arbitrary app drawables). Falls back to the default icon when the name is invalid or the drawable is missing or cannot be loaded. See "Small icons" below. |
 | `color` | string, optional | Accent colour as `#RRGGBB` (six hex digits, nothing else). Applied to the small icon and action area. Ignored when it does not match exactly. |
 | `cancel` | boolean | Remove the notification. |
 | `timestamp` | integer, optional | Milliseconds since epoch, set by the sender. See below. |
