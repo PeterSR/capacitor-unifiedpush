@@ -149,4 +149,43 @@ public class NotificationSpecTest {
         assertEquals(1, rest.length());
         assertEquals("b", rest.getJSONObject(0).getString("id"));
     }
+
+    private static NotificationSpec spec(String extra) throws Exception {
+        return NotificationSpec.parse(new JSONObject("{\"notification\":{\"id\":\"a\"" + extra + "}}"));
+    }
+
+    @Test
+    public void parsesValidIconAndColor() throws Exception {
+        NotificationSpec s = spec(",\"icon\":\"ic_stat_sleep\",\"color\":\"#1e88E5\"");
+        assertEquals("ic_stat_sleep", s.icon);
+        assertEquals(Integer.valueOf(0xFF1E88E5), s.color);
+        assertEquals("ic_stat_sleep", new JSONObject(s.raw).getString("icon"));
+    }
+
+    @Test
+    public void absentIconAndColorAreNull() throws Exception {
+        NotificationSpec s = spec("");
+        assertNull(s.icon);
+        assertNull(s.color);
+    }
+
+    @Test
+    public void rejectsInvalidIconNames() throws Exception {
+        String[] bad = { "", "Ic_Upper", "1abc", "_abc", "has-dash", "has space", "../x", "a.b", "ic\u00e6",
+            "a".repeat(65) };
+        for (String name : bad) {
+            assertNull("icon '" + name + "'", spec(",\"icon\":\"" + name + "\"").icon);
+        }
+        assertEquals("a".repeat(64), spec(",\"icon\":\"" + "a".repeat(64) + "\"").icon);
+        assertNull(spec(",\"icon\":5").icon);
+    }
+
+    @Test
+    public void rejectsInvalidColors() throws Exception {
+        String[] bad = { "", "1E88E5", "#1E88E", "#1E88E5F", "#GGGGGG", "red", "#1E88E5 ", "#FF1E88E5", "rgb(1,2,3)" };
+        for (String c : bad) {
+            assertNull("color '" + c + "'", spec(",\"color\":\"" + c + "\"").color);
+        }
+        assertNull(spec(",\"color\":123456").color);
+    }
 }

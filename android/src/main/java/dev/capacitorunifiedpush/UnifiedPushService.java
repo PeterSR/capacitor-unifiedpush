@@ -54,7 +54,10 @@ public class UnifiedPushService extends PushService {
         if (spec != null) {
             applyNotification(spec);
         }
-        UnifiedPushPlugin.dispatchMessage(this, instance, text);
+        String id = UnifiedPushPlugin.dispatchMessage(this, instance, text);
+        if (id != null) {
+            MessageBroadcast.send(this, instance, text, id);
+        }
     }
 
     private void applyNotification(NotificationSpec spec) {

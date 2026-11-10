@@ -2,6 +2,7 @@ package dev.capacitorunifiedpush;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -10,13 +11,18 @@ import org.json.JSONObject;
  *
  * <pre>
  * { "notification": { "id": "...", "title": "...", "body": "...", "ongoing": true,
- *   "actions": [{"id": "...", "title": "..."}], "data": {}, "channel_id": "...", "silent": false, "timestamp": 1700000000000 } }
+ *   "actions": [{"id": "...", "title": "..."}], "data": {}, "channel_id": "...", "silent": false, "timestamp": 1700000000000,
+ *   "icon": "ic_stat_example", "color": "#1E88E5" } }
  * { "notification": { "id": "...", "cancel": true } }
  * </pre>
  */
 final class NotificationSpec {
 
     static final int MAX_ACTIONS = 3;
+
+    /** Android resource name rules, lower case only. */
+    private static final Pattern ICON_NAME = Pattern.compile("^[a-z][a-z0-9_]{0,63}$");
+    private static final Pattern COLOR = Pattern.compile("^#[0-9A-Fa-f]{6}$");
 
     static final class Action {
 
@@ -37,6 +43,10 @@ final class NotificationSpec {
     final boolean silent;
     final String channelId;
     final List<Action> actions;
+    /** Name of a drawable in the app for the small icon, or null when absent or invalid. */
+    final String icon;
+    /** Accent colour as ARGB int (opaque), or null when absent or invalid. */
+    final Integer color;
     /** The {@code data} object serialised as JSON, or "{}" when absent. */
     final String dataJson;
     /** Sender timestamp in ms since epoch, or null when absent. */
@@ -53,6 +63,8 @@ final class NotificationSpec {
         boolean silent,
         String channelId,
         List<Action> actions,
+        String icon,
+        Integer color,
         String dataJson,
         Long timestamp,
         String raw
@@ -65,6 +77,8 @@ final class NotificationSpec {
         this.silent = silent;
         this.channelId = channelId;
         this.actions = actions;
+        this.icon = icon;
+        this.color = color;
         this.dataJson = dataJson;
         this.timestamp = timestamp;
         this.raw = raw;
@@ -119,9 +133,24 @@ final class NotificationSpec {
             n.optBoolean("silent", false),
             channel.isEmpty() ? null : channel,
             actions,
+            validIcon(n.optString("icon", "")),
+            parseColor(n.optString("color", "")),
             data == null ? "{}" : data.toString(),
             n.has("timestamp") && !n.isNull("timestamp") ? Long.valueOf(n.optLong("timestamp")) : null,
             n.toString()
         );
+    }
+
+    /** Returns the name when it is a valid Android drawable resource name, otherwise null. */
+    static String validIcon(String name) {
+        return name != null && ICON_NAME.matcher(name).matches() ? name : null;
+    }
+
+    /** Parses "#RRGGBB" into an opaque ARGB int, or returns null for anything else. */
+    static Integer parseColor(String value) {
+        if (value == null || !COLOR.matcher(value).matches()) {
+            return null;
+        }
+        return Integer.valueOf(0xFF000000 | Integer.parseInt(value.substring(1), 16));
     }
 }
