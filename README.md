@@ -38,7 +38,8 @@ The plugin's Android library brings in the connector, declares the push service 
 2. Your Gradle setup must be able to resolve `org.unifiedpush.android:connector` from Maven Central
    (the default `mavenCentral()` repository).
 3. Optional: provide your own small notification icon as `res/drawable/ic_stat_unifiedpush.xml` in
-   your app to override the plugin's bell icon. It must be a white, transparent-background icon.
+   your app to override the plugin's bell icon. It must be a white, transparent-background icon. To
+   pick an icon per message, see `icon` in the notification schema.
 4. Optional: create your own notification channels in your app (for example with
    `NotificationManager.createNotificationChannel` in your main activity, or a channel plugin). A message
    can name one with `channel_id`. If that channel does not exist, the plugin falls back to its default
@@ -149,6 +150,60 @@ Delivery is **at least once**, and nothing is lost to a WebView reload or a cold
 - If you never acknowledge, you will see the same items again on every listener attach until they
   expire or are pushed out by newer ones.
 
+## Native message broadcast (Android)
+
+For every accepted message (decrypted, stored for JS delivery) the plugin sends a
+package-restricted broadcast so that your own native code, for example a home screen widget's
+`BroadcastReceiver`, can react while the WebView is not running. Messages that fail decryption are never broadcast.
+
+| | |
+| --- | --- |
+| Action | `dev.capacitorunifiedpush.MESSAGE` |
+| Restricted to | your own app, through `intent.setPackage(packageName)` |
+| Extra `instance` | String, the registration instance |
+| Extra `data` | String, the decrypted payload as UTF-8 |
+| Extra `id` | String, the id the message was stored with (the `id` of the `message` event) |
+
+The broadcast is on by default. To switch it off, add this to the `<application>` element of your
+manifest (this keeps things simple: no runtime API, the choice is made at build time). Use the
+literal `android:value="false"` (boolean) or `"0"` (integer), or a `@string` resource whose value is
+`"false"` or `"0"`:
+
+```xml
+<meta-data android:name="dev.capacitorunifiedpush.broadcast_messages" android:value="false" />
+```
+
+Minimal receiver (Kotlin):
+
+```kotlin
+class PushReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        val instance = intent.getStringExtra("instance")
+        val data = intent.getStringExtra("data") ?: return
+        val id = intent.getStringExtra("id")
+        // Keep this short. Use goAsync() or enqueue WorkManager for anything longer.
+        // For example parse `data` and refresh an app widget.
+    }
+}
+```
+
+```xml
+<receiver android:name=".PushReceiver" android:exported="false">
+    <intent-filter>
+        <action android:name="dev.capacitorunifiedpush.MESSAGE" />
+    </intent-filter>
+</receiver>
+```
+
+A receiver registered at runtime must use
+`ContextCompat.registerReceiver(..., ContextCompat.RECEIVER_NOT_EXPORTED)`.
+
+Security: the broadcast is limited to your package, and the receiver must be `android:exported="false"`
+so no other app can send it forged messages. The payload is already decrypted, so do not log it or
+forward it outside the app. The broadcast is sent in addition to the stored `message` event, which stays
+the reliable path: a broadcast is best effort and is not redelivered, so treat it as a hint to refresh
+and use the `message` event (with its acknowledgement) for anything that must not be lost.
+
 ## Notification schema
 
 The plugin is generic. Its only fixed schema is an optional top-level `notification` object in the
@@ -168,6 +223,8 @@ app is not running. The whole message is still passed to JS as a `message` event
     "data": { "timer_id": "42" },
     "channel_id": "timers",
     "silent": false,
+    "icon": "ic_stat_timer",
+    "color": "#1E88E5",
     "timestamp": 1760000000000
   }
 }
@@ -188,6 +245,8 @@ Cancel:
 | `data` | object | Returned in `notificationAction`. |
 | `channel_id` | string | Notification channel created by your app. The plugin's default channel is used when absent or when the channel does not exist. |
 | `silent` | boolean | No sound or vibration. Updates to an existing notification never alert again. |
+| `icon` | string, optional | Name of a drawable resource in your app, for example `ic_stat_timer`. Must match `^ic_stat_[a-z0-9_]{1,56}$` (the `ic_stat_` prefix is required, so a message cannot pick arbitrary app drawables). Falls back to the default icon when the name is invalid or the drawable is missing or cannot be loaded. See "Small icons" below. |
+| `color` | string, optional | Accent colour as `#RRGGBB` (six hex digits, nothing else). Applied to the small icon and action area. Ignored when it does not match exactly. |
 | `cancel` | boolean | Remove the notification. |
 | `timestamp` | integer, optional | Milliseconds since epoch, set by the sender. See below. |
 
@@ -196,6 +255,20 @@ Tapping the body opens the app without an event.
 The notification intents carry a data URI with the scheme `capacitorunifiedpush://n/...` (distinct per
 notification and action). After a cold start from a notification, `App.getLaunchUrl()` from
 `@capacitor/app` returns that URI. Ignore URLs with this scheme in your deep link handling.
+
+`icon` and `color` are stored with the notification record, so the notification keeps them when the
+plugin re-posts it after an action tap.
+
+### Small icons
+
+Android requires the small notification icon to be monochrome: white shapes on a transparent
+background. Colour in the icon is discarded by the system and usually renders as a plain white or grey
+square, so use `color` for accent instead. Use a vector drawable or a white-on-transparent PNG, not an
+adaptive-icon or a coloured layer. To add icons, put them in your app's
+`android/app/src/main/res/drawable/`, for example `ic_stat_timer.xml`, and send
+`"icon": "ic_stat_timer"`. Name lookup is by resource name in your app package at runtime. If you
+use resource shrinking, keep the drawables, for example with a `res/raw/keep.xml` containing
+`<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@drawable/ic_stat_*" />`.
 
 ### Timestamp guard
 
@@ -247,8 +320,10 @@ Any RFC 8291 library works. Do not send plaintext: it is dropped (see below).
 
 - **Plaintext is never accepted.** A message that fails Web Push decryption, or that arrives
   unencrypted although the registration has keys, is dropped and logged at debug level. It is never
-  shown as a notification and never passed to JS. Anyone who learns an endpoint URL can post to it, so
+  shown as a notification, passed to JS or broadcast. Anyone who learns an endpoint URL can post to it, so
   only messages encrypted to the device's own keys are trusted to carry content.
+- **The message broadcast carries decrypted payloads.** See "Native message broadcast": it is
+  limited to your package, and its receiver must be `android:exported="false"`.
 - **Treat the endpoint and keys as secrets** on your server.
 - **The push channel carries no authority.** Notification actions only open the app, which then
   authenticates itself to your backend before doing anything. Do not make a push message, or a tap on

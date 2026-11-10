@@ -162,15 +162,15 @@ public class UnifiedPushPlugin extends Plugin {
 
     /**
      * Stores the message until JS acknowledges it, and delivers it now when a listener is
-     * attached. Delivery is at least once.
+     * attached. Delivery is at least once. Returns the stored id, or null on failure.
      */
-    static void dispatchMessage(Context context, String instance, String data) {
+    static String dispatchMessage(Context context, String instance, String data) {
         JSONObject m = new JSONObject();
         try {
             m.put("instance", instance);
             m.put("data", data);
         } catch (JSONException e) {
-            return;
+            return null;
         }
         synchronized (PushStore.LOCK) {
             JSONObject stored = new PushStore(context).addItem(PushStore.QUEUE_MESSAGES, m);
@@ -178,6 +178,7 @@ public class UnifiedPushPlugin extends Plugin {
             if (p != null && p.hasListeners("message")) {
                 p.notifyListeners("message", toJSObject(forEmit(PushStore.QUEUE_MESSAGES, stored)));
             }
+            return stored.optString("id", null);
         }
     }
 

@@ -30,7 +30,7 @@ android {
         minSdkVersion project.hasProperty('minSdkVersion') ? rootProject.ext.minSdkVersion : 22
         targetSdkVersion project.hasProperty('targetSdkVersion') ? rootProject.ext.targetSdkVersion : (project.findProperty('ciCompileSdk') ?: '34').toInteger()
         versionCode 1
-        versionName "0.1.0"
+        versionName "0.1.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

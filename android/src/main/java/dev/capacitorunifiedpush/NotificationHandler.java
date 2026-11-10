@@ -1,5 +1,6 @@
 package dev.capacitorunifiedpush;
 
+import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -11,6 +12,7 @@ import android.service.notification.StatusBarNotification;
 import android.util.Log;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.res.ResourcesCompat;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.SecureRandom;
@@ -62,7 +64,7 @@ final class NotificationHandler {
 
         String channelId = resolveChannel(context, nm, spec.channelId);
         NotificationCompat.Builder b = new NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_stat_unifiedpush)
+            .setSmallIcon(resolveSmallIcon(context, spec.icon))
             .setContentTitle(spec.title)
             .setContentText(spec.body)
             .setStyle(new NotificationCompat.BigTextStyle().bigText(spec.body))
@@ -72,6 +74,10 @@ final class NotificationHandler {
             .setOnlyAlertOnce(true)
             .setSilent(spec.silent)
             .setCategory(NotificationCompat.CATEGORY_STATUS);
+
+        if (spec.color != null) {
+            b.setColor(spec.color);
+        }
 
         // Fresh one-shot nonces replace the ones of any earlier version of this notification.
         store.clearNonces(spec.id);
@@ -128,6 +134,29 @@ final class NotificationHandler {
         } catch (JSONException e) {
             Log.w(TAG, "Could not refresh notification", e);
         }
+    }
+
+    /**
+     * Looks the requested drawable up in the app's resources. Falls back to the plugin's default
+     * icon when no name was given (or it was invalid) or when the app has no such drawable.
+     */
+    private static int resolveSmallIcon(Context context, String name) {
+        if (name != null) {
+            @SuppressLint("DiscouragedApi") // the name comes from the message, so it can only be looked up at runtime
+            int id = context.getResources().getIdentifier(name, "drawable", context.getPackageName());
+            if (id != 0) {
+                try {
+                    if (ResourcesCompat.getDrawable(context.getResources(), id, null) != null) {
+                        return id;
+                    }
+                } catch (RuntimeException e) {
+                    Log.w(TAG, "Drawable '" + name + "' could not be loaded, using the default icon", e);
+                    return R.drawable.ic_stat_unifiedpush;
+                }
+            }
+            Log.w(TAG, "Drawable '" + name + "' not usable, using the default icon");
+        }
+        return R.drawable.ic_stat_unifiedpush;
     }
 
     /**

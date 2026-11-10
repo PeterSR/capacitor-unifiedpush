@@ -6,6 +6,19 @@ All notable changes to this project are documented here. The format follows
 
 ## Unreleased
 
+## 0.1.2 - 2026-11-10
+
+### Added
+
+- Optional `icon` (name of a drawable resource in the app, must match
+  `^ic_stat_[a-z0-9_]{1,56}$`, falls back to the default icon) and `color` (`#RRGGBB`) fields on
+  the `notification` object. Both are kept when a notification is re-posted after an action tap.
+  New `PushNotificationSpec` type.
+- Native broadcast `dev.capacitorunifiedpush.MESSAGE` (restricted to the app's package, extras
+  `instance`, `data`, `id`) sent for every accepted message, so app native code such as a widget
+  receiver can react while the WebView is not running. On by default, switch off with the manifest
+  meta-data `dev.capacitorunifiedpush.broadcast_messages` set to false.
+
 ## 0.1.1 - 2026-11-10
 
 ### Changed

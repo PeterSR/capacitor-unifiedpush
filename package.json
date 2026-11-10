@@ -1,6 +1,6 @@
 {
   "name": "capacitor-unifiedpush",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Capacitor plugin for UnifiedPush (Android): self-hosted, FCM-free Web Push with native notification handling",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",

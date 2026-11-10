@@ -61,6 +61,33 @@ export interface PushMessageEvent {
   json?: Record<string, unknown>;
 }
 
+/**
+ * The optional top level `notification` object of a push message. The plugin never reads this type
+ * at runtime, it documents what the native side understands (Android).
+ */
+export interface PushNotificationSpec {
+  /** Identifies the notification. The same id updates it in place. */
+  id: string;
+  title?: string;
+  body?: string;
+  ongoing?: boolean;
+  actions?: { id: string; title: string }[];
+  data?: Record<string, unknown>;
+  channel_id?: string;
+  silent?: boolean;
+  cancel?: boolean;
+  /** Milliseconds since epoch, set by the sender, used as replay guard. */
+  timestamp?: number;
+  /**
+   * Name of a drawable resource in the app (for example `ic_stat_timer`) used as the small icon.
+   * Must match `^ic_stat_[a-z0-9_]{1,56}$`. Falls back to the plugin's default icon when invalid, not
+   * found or not loadable. Small icons must be monochrome (white on transparent).
+   */
+  icon?: string;
+  /** Accent colour as `#RRGGBB`. Ignored when it does not match exactly. */
+  color?: string;
+}
+
 export interface NotificationActionEvent {
   /** Unique id, pass it to `ackActions`. Delivered at least once until acknowledged. */
   id: string;
