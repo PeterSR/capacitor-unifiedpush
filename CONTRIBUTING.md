@@ -29,3 +29,11 @@ cd android && ./gradlew build   # compile, lint and unit tests of the Android li
 
 Describe what changed and why, and how you tested it (device, Android version, distributor).
 By contributing you agree that your contribution is licensed under the MIT license.
+
+## Releasing (maintainers)
+
+1. Move the Unreleased lines in `CHANGELOG.md` under a new version heading with today's date, and
+   set the same version in `package.json` (`npm version <x.y.z> --no-git-tag-version`).
+2. Merge that to `main`.
+3. Publish a GitHub release whose tag is `v<x.y.z>`. The Release workflow checks that the tag
+   matches `package.json`, builds, and publishes to npm with trusted publishing (no npm token).
