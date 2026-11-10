@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        capacitor: [6, 7, 8]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Use Capacitor ${{ matrix.capacitor }}
+        run: npm install --no-save @capacitor/core@${{ matrix.capacitor }} @capacitor/android@${{ matrix.capacitor }}
+      - run: npm run lint
+      - run: npm run build
+
+  android:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - capacitor: 6
+            java: 17
+            sdk: 34
+            agp: 8.7.3
+            gradle: 8.11.1
+            gradle_sha: 89d4e70e4e84e2d2dfbb63e4daa53e21b25017cc70c37e4eea31ee51fb15098a
+          - capacitor: 7
+            java: 21
+            sdk: 35
+            agp: 8.7.3
+            gradle: 8.11.1
+            gradle_sha: 89d4e70e4e84e2d2dfbb63e4daa53e21b25017cc70c37e4eea31ee51fb15098a
+          - capacitor: 8
+            java: 21
+            sdk: 36
+            agp: 8.13.0
+            gradle: 8.14.3
+            gradle_sha: ed1a8d686605fd7c23bdf62c7fc7add1c5b23b2bbc3721e661934ef4a4911d7c
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+      - run: sdkmanager "platforms;android-${{ matrix.sdk }}" "build-tools;${{ matrix.sdk }}.0.0"
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
+      - run: npm ci
+      - name: Use Capacitor ${{ matrix.capacitor }}
+        run: npm install --no-save @capacitor/core@${{ matrix.capacitor }} @capacitor/android@${{ matrix.capacitor }}
+      - name: Use the Gradle version for this Capacitor version
+        if: matrix.gradle != '8.11.1'
+        working-directory: android
+        run: sed -i 's/gradle-8.11.1-all/gradle-${{ matrix.gradle }}-all/; s/^distributionSha256Sum=.*/distributionSha256Sum=${{ matrix.gradle_sha }}/' gradle/wrapper/gradle-wrapper.properties
+      - name: Build, lint and test the Android library
+        working-directory: android
+        run: ./gradlew build lint test -PagpVersion=${{ matrix.agp }} -PciCompileSdk=${{ matrix.sdk }}

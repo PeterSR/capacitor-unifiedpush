@@ -1,0 +1,18 @@
+node_modules
+dist
+.DS_Store
+*.log
+.idea
+*.iml
+.vscode
+
+# Android / Gradle
+.gradle
+build
+local.properties
+*.apk
+*.aab
+captures
+.externalNativeBuild
+*.tgz
+!android/gradle/wrapper/gradle-wrapper.jar

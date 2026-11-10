@@ -1,0 +1,39 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: input
+    id: plugin
+    attributes:
+      label: Plugin version
+    validations: { required: true }
+  - type: input
+    id: capacitor
+    attributes:
+      label: Capacitor version
+    validations: { required: true }
+  - type: input
+    id: android
+    attributes:
+      label: Android version and device
+    validations: { required: true }
+  - type: input
+    id: distributor
+    attributes:
+      label: Distributor app and version (for example ntfy, NextPush)
+    validations: { required: true }
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: "`adb logcat` lines tagged UnifiedPushPlugin or UnifiedPush. Remove endpoint URLs and keys."
+      render: text

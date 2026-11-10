@@ -1,0 +1,66 @@
+{
+  "name": "capacitor-unifiedpush",
+  "version": "0.1.0",
+  "description": "Capacitor plugin for UnifiedPush (Android): self-hosted, FCM-free Web Push with native notification handling",
+  "main": "dist/plugin.cjs.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "unpkg": "dist/plugin.js",
+  "files": [
+    "android/src/main/",
+    "android/build.gradle",
+    "dist/",
+    "NOTICE",
+    "LICENSES/"
+  ],
+  "author": "Peter Severin Rasmussen",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PeterSR/capacitor-unifiedpush.git"
+  },
+  "bugs": {
+    "url": "https://github.com/PeterSR/capacitor-unifiedpush/issues"
+  },
+  "homepage": "https://github.com/PeterSR/capacitor-unifiedpush#readme",
+  "keywords": [
+    "capacitor",
+    "plugin",
+    "android",
+    "unifiedpush",
+    "push",
+    "web-push",
+    "notifications"
+  ],
+  "scripts": {
+    "verify": "npm run verify:android && npm run verify:web",
+    "verify:android": "cd android && ./gradlew clean build test && cd ..",
+    "verify:web": "npm run build",
+    "lint": "prettier \"src/**/*.ts\" --check",
+    "fmt": "prettier \"src/**/*.ts\" --write",
+    "build": "npm run clean && tsc && rollup -c rollup.config.mjs",
+    "clean": "rimraf ./dist",
+    "watch": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/core": "^6.2.1",
+    "prettier": "^3.6.2",
+    "rimraf": "^6.1.0",
+    "rollup": "^4.53.2",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "@capacitor/core": "^6.0.0 || ^7.0.0 || ^8.0.0"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "printWidth": 100
+  },
+  "capacitor": {
+    "android": {
+      "src": "android"
+    }
+  }
+}

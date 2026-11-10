@@ -1,0 +1,21 @@
+Third party notices
+
+Notification icon (android/src/main/res/drawable/ic_stat_unifiedpush.xml)
+  The bell shape is the "notifications" icon from Material Design Icons,
+  Copyright Google LLC, licensed under the Apache License, Version 2.0
+  (LICENSES/Apache-2.0.txt).
+  https://github.com/google/material-design-icons
+
+Runtime dependencies, resolved by Gradle and not part of this repository
+  org.unifiedpush.android:connector     Apache License 2.0
+    (includes a patched copy of the Tink Web Push classes, Apache License 2.0)
+  com.google.crypto.tink:tink           Apache License 2.0
+  com.google.protobuf:protobuf-java     BSD 3-Clause
+  com.google.code.gson:gson             Apache License 2.0
+  com.google.code.findbugs:jsr305       Apache License 2.0 (per its POM); the
+    javax.annotation.concurrent annotations are Copyright (c) 2005 Brian Goetz, CC BY 2.5
+    (https://creativecommons.org/licenses/by/2.5/)
+  com.google.errorprone:error_prone_annotations  Apache License 2.0
+  org.jetbrains.kotlin:kotlin-stdlib    Apache License 2.0
+
+The Apache License, Version 2.0 is reproduced in LICENSES/Apache-2.0.txt.
