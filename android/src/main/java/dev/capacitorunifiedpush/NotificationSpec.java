@@ -141,7 +141,11 @@ final class NotificationSpec {
         );
     }
 
-    /** Returns the name when it is a valid Android drawable resource name, otherwise null. */
+    /**
+     * Returns the name when it is a String of the form {@code ic_stat_} plus 1 to 56 lower case
+     * letters, digits or underscores (a valid Android resource name with the required prefix),
+     * otherwise null.
+     */
     static String validIcon(Object name) {
         return name instanceof String && ICON_NAME.matcher((String) name).matches() ? (String) name : null;
     }

@@ -59,6 +59,12 @@ public class MessageBroadcastTest {
         assertTrue(!MessageBroadcast.isEnabled(app));
         info.metaData.putInt(MessageBroadcast.META_ENABLED, 0);
         assertTrue(!MessageBroadcast.isEnabled(app));
+        info.metaData.putString(MessageBroadcast.META_ENABLED, "0");
+        assertTrue(!MessageBroadcast.isEnabled(app));
+        info.metaData.putString(MessageBroadcast.META_ENABLED, "FALSE ");
+        assertTrue(!MessageBroadcast.isEnabled(app));
+        info.metaData.putInt(MessageBroadcast.META_ENABLED, 1);
+        assertTrue(MessageBroadcast.isEnabled(app));
         info.metaData.putBoolean(MessageBroadcast.META_ENABLED, true);
         assertTrue(MessageBroadcast.isEnabled(app));
     }

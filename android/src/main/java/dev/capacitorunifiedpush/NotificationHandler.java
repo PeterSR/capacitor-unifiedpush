@@ -150,7 +150,8 @@ final class NotificationHandler {
                         return id;
                     }
                 } catch (RuntimeException e) {
-                    Log.w(TAG, "Drawable '" + name + "' could not be loaded", e);
+                    Log.w(TAG, "Drawable '" + name + "' could not be loaded, using the default icon", e);
+                    return R.drawable.ic_stat_unifiedpush;
                 }
             }
             Log.w(TAG, "Drawable '" + name + "' not usable, using the default icon");

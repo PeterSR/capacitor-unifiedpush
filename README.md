@@ -152,9 +152,9 @@ Delivery is **at least once**, and nothing is lost to a WebView reload or a cold
 
 ## Native message broadcast (Android)
 
-For every accepted message (decrypted, stored for JS delivery) the plugin sends a package-restricted broadcast
-so that your own native code, for example a home screen widget's `BroadcastReceiver`, can react while
-the WebView is not running. Messages that fail decryption are never broadcast.
+For every accepted message (decrypted, stored for JS delivery) the plugin sends a
+package-restricted broadcast so that your own native code, for example a home screen widget's
+`BroadcastReceiver`, can react while the WebView is not running. Messages that fail decryption are never broadcast.
 
 | | |
 | --- | --- |
@@ -165,7 +165,9 @@ the WebView is not running. Messages that fail decryption are never broadcast.
 | Extra `id` | String, the id the message was stored with (the `id` of the `message` event) |
 
 The broadcast is on by default. To switch it off, add this to the `<application>` element of your
-manifest (this keeps things simple: no runtime API, the choice is made at build time). The literal boolean `false` is the supported form; the string "false" and the integer 0 are also treated as off:
+manifest (this keeps things simple: no runtime API, the choice is made at build time). Use the
+literal `android:value="false"` (boolean) or `"0"` (integer), or a `@string` resource whose value is
+`"false"` or `"0"`:
 
 ```xml
 <meta-data android:name="dev.capacitorunifiedpush.broadcast_messages" android:value="false" />
@@ -193,7 +195,8 @@ class PushReceiver : BroadcastReceiver() {
 </receiver>
 ```
 
-A receiver registered at runtime must use `ContextCompat.registerReceiver(..., ContextCompat.RECEIVER_NOT_EXPORTED)`.
+A receiver registered at runtime must use
+`ContextCompat.registerReceiver(..., ContextCompat.RECEIVER_NOT_EXPORTED)`.
 
 Security: the broadcast is limited to your package, and the receiver must be `android:exported="false"`
 so no other app can send it forged messages. The payload is already decrypted, so do not log it or
@@ -260,8 +263,9 @@ plugin re-posts it after an action tap.
 
 Android requires the small notification icon to be monochrome: white shapes on a transparent
 background. Colour in the icon is discarded by the system and usually renders as a plain white or grey
-square, so use `color` for accent instead. To add icons, put vector drawables (or PNGs per density) in
-your app's `android/app/src/main/res/drawable/`, for example `ic_stat_timer.xml`, and send
+square, so use `color` for accent instead. Use a vector drawable or a white-on-transparent PNG, not an
+adaptive-icon or a coloured layer. To add icons, put them in your app's
+`android/app/src/main/res/drawable/`, for example `ic_stat_timer.xml`, and send
 `"icon": "ic_stat_timer"`. Name lookup is by resource name in your app package at runtime. If you
 use resource shrinking, keep the drawables, for example with a `res/raw/keep.xml` containing
 `<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@drawable/ic_stat_*" />`.
@@ -316,8 +320,10 @@ Any RFC 8291 library works. Do not send plaintext: it is dropped (see below).
 
 - **Plaintext is never accepted.** A message that fails Web Push decryption, or that arrives
   unencrypted although the registration has keys, is dropped and logged at debug level. It is never
-  shown as a notification and never passed to JS. Anyone who learns an endpoint URL can post to it, so
+  shown as a notification, passed to JS or broadcast. Anyone who learns an endpoint URL can post to it, so
   only messages encrypted to the device's own keys are trusted to carry content.
+- **The message broadcast carries decrypted payloads.** See "Native message broadcast": it is
+  limited to your package, and its receiver must be `android:exported="false"`.
 - **Treat the endpoint and keys as secrets** on your server.
 - **The push channel carries no authority.** Notification actions only open the app, which then
   authenticates itself to your backend before doing anything. Do not make a push message, or a tap on

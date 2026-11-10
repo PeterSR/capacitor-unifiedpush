@@ -17,7 +17,10 @@ final class MessageBroadcast {
     static final String EXTRA_INSTANCE = "instance";
     static final String EXTRA_DATA = "data";
     static final String EXTRA_ID = "id";
-    /** Application meta-data flag. Set it to false to switch the broadcast off. Default true. */
+    /**
+     * Application meta-data flag, default on. Off values: boolean false, integer 0, or a
+     * {@code @string} resource whose value is "false" or "0" (trimmed, case-insensitive).
+     */
     static final String META_ENABLED = "dev.capacitorunifiedpush.broadcast_messages";
 
     private MessageBroadcast() {}
@@ -32,7 +35,10 @@ final class MessageBroadcast {
         return i;
     }
 
-    /** True unless the app set the meta-data flag to false. */
+    /**
+     * True unless the meta-data flag is boolean false, integer 0, or a string "false" or "0".
+     * Any other value, or no flag, leaves the broadcast on.
+     */
     static boolean isEnabled(Context context) {
         try {
             ApplicationInfo info = context
